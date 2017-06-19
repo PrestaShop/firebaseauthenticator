@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__.'/classes/FirebaseClient.php');
+
 class FirebaseAuthenticator extends Module
 {
     public function __construct()
