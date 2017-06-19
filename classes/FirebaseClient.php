@@ -64,38 +64,34 @@ class FirebaseClient
 
     public function signInWithEmailAndPassword($email, $password)
     {
-        $response = (string) $this->client->post('/verifyPassword', array(
+        $response = $this->client->post('/verifyPassword', array(
             'query' => array(
                 'email' => $email,
                 'password' => $password,
                 'returnSecureToken' => true,
             ),
-        ))->getBody();
+        ));
+        $body = json_decode((string)$response->getBody());
 
-        $response = json_decode($response);
-
-        $this->checkErrors($response);
-        return $response;
+        $this->checkErrors($response, $body);
+        return $body;
     }
 
-    protected function checkErrors($response)
+    /**
+     * Firebase API returns a specific response structure in case of error
+     * https://firebase.google.com/docs/reference/rest/auth/#section-error-format
+     *
+     * @param GuzzleHttp\Message\ResponseInterface $response
+     * @param object $body JSON response content
+     * @throws Exception
+     */
+    protected function checkErrors($response, $body)
     {
-        // {
-        //    "error": {
-        //      "errors": [
-        //        {
-        //          "domain": "global",
-        //          "reason": "invalid",
-        //          "message": "CREDENTIAL_TOO_OLD_LOGIN_AGAIN"
-        //        }
-        //      ],
-        //      "code": 400,
-        //      "message": "CREDENTIAL_TOO_OLD_LOGIN_AGAIN"
-        //    }
-        // }
-
-        if ($response->error) {
+        if ($body->error) {
             throw new Exception('API answered with errror '. $response->error->message, $response->error->code);
+        }
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('Unexpected HTTP status '.$response->getStatusCode().' returned', $response->getStatusCode());
         }
     }
 }

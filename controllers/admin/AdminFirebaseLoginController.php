@@ -29,6 +29,18 @@ require_once(__DIR__.'/../../classes/FirebaseClient.php');
 
 class AdminFirebaseLoginController extends AdminLoginController
 {
+    /**
+     * Guzzle instance for Firebase API
+     * 
+     * @var FirebaseClient
+     */
+    protected $firebaseClient;
+
+    public function __construct()
+    {
+        $this->firebaseClient = new FirebaseClient();
+    }
+
     // Declared from parent class
     /*public function checkToken() { return true; }
 
@@ -36,10 +48,31 @@ class AdminFirebaseLoginController extends AdminLoginController
 
     public function postProcess()
     {
-        if (!Tools::isSubmit('submitLogin')) {
-            return;
+        if (Tools::getIsset('api_key')) {
+            return $this->postProcessApiKeyAuth();
         }
 
+        if (Tools::isSubmit('submitLogin')) {
+            return $this->postProcessBasicAuth();
+        }
+    }
+
+    protected function postProcessApiKeyAuth()
+    {
+        $apiKey = trim(Tools::getValue('api_key'));
+        try {
+            $user = $this->firebaseClient->signInWithEmailAndPassword($email, $passwd);
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog(sprintf($this->trans('Failed authentication with Firebase: %s', array(), 'Admin.Advparameters.Feature'), $e->getMessage()), 1);
+        }
+
+        if (!isset($user) || !$user->registered || $user->email !== $email) {
+            return parent::postProcess();
+        }
+    }
+
+    protected function postProcessBasicAuth()
+    {
         /* Check fields validity */
         $passwd = trim(Tools::getValue('passwd'));
         $email = trim(Tools::getValue('email'));
@@ -61,9 +94,8 @@ class AdminFirebaseLoginController extends AdminLoginController
          * If form correct, go on the authentication with Firebase
          * https://firebase.google.com/docs/reference/rest/auth/#section-sign-in-email-password
          */
-        $client = new FirebaseClient();
         try {
-            $user = $client->signInWithEmailAndPassword($email, $passwd);
+            $user = $this->firebaseClient->signInWithEmailAndPassword($email, $passwd);
         } catch (Exception $e) {
             PrestaShopLogger::addLog(sprintf($this->trans('Failed authentication with Firebase: %s', array(), 'Admin.Advparameters.Feature'), $e->getMessage()), 1);
         }
