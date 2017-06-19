@@ -48,8 +48,8 @@ class AdminFirebaseLoginController extends AdminLoginController
 
     public function postProcess()
     {
-        if (Tools::getIsset('api_key')) {
-            return $this->postProcessApiKeyAuth();
+        if (Tools::getIsset('api_token')) {
+            return $this->postProcessTokenAuth();
         }
 
         if (Tools::isSubmit('submitLogin')) {
@@ -57,18 +57,21 @@ class AdminFirebaseLoginController extends AdminLoginController
         }
     }
 
-    protected function postProcessApiKeyAuth()
+    protected function postProcessTokenAuth()
     {
-        $apiKey = trim(Tools::getValue('api_key'));
+        $token = trim(Tools::getValue('api_token'));
         try {
-            $user = $this->firebaseClient->signInWithEmailAndPassword($email, $passwd);
+            $users = $this->firebaseClient->signInWithToken($token);
+            $user = reset($users);
         } catch (Exception $e) {
             PrestaShopLogger::addLog(sprintf($this->trans('Failed authentication with Firebase: %s', array(), 'Admin.Advparameters.Feature'), $e->getMessage()), 1);
         }
 
-        if (!isset($user) || !$user->registered || $user->email !== $email) {
-            return parent::postProcess();
+        // No user or issue with the API? Redirect to the login page
+        if (!isset($user) || !$this->authenticateEmployee($user->email)) {
+            Tools::redirectAdmin(Link::getAdminLink('AdminLogin', false));
         }
+        $this->doRedirectOrResponse();
     }
 
     protected function postProcessBasicAuth()
@@ -90,10 +93,6 @@ class AdminFirebaseLoginController extends AdminLoginController
 
         $this->returnOnError();
 
-        /**
-         * If form correct, go on the authentication with Firebase
-         * https://firebase.google.com/docs/reference/rest/auth/#section-sign-in-email-password
-         */
         try {
             $user = $this->firebaseClient->signInWithEmailAndPassword($email, $passwd);
         } catch (Exception $e) {
@@ -104,6 +103,15 @@ class AdminFirebaseLoginController extends AdminLoginController
             return parent::postProcess();
         }
 
+        if (!$this->authenticateEmployee()) {
+            return parent::postProcess();
+        }
+
+        $this->doRedirectOrResponse();
+    }
+
+    protected function authenticateEmployee($email)
+    {
         // Find employee
         $this->context->employee = new Employee();
         $is_employee_loaded = $this->context->employee->getByEmail($email);
@@ -112,14 +120,14 @@ class AdminFirebaseLoginController extends AdminLoginController
         // If employee not found, we fallback on the basic auth
         if (!$is_employee_loaded) {
             $this->context->employee->logout();
-            return parent::postProcess();
+            return false;
         }
 
         if (empty($employee_associated_shop) && !$this->context->employee->isSuperAdmin()) {
             $this->errors[] = $this->trans('This employee does not manage the shop anymore (either the shop has been deleted or permissions have been revoked).', array(), 'Admin.Login.Notification');
             $this->returnOnError();
         }
-        
+
         PrestaShopLogger::addLog(sprintf($this->trans('Back office connection from %s', array(), 'Admin.Advparameters.Feature'), Tools::getRemoteAddr()), 1, null, '', 0, true, (int)$this->context->employee->id);
 
         $this->context->employee->remote_addr = (int)ip2long(Tools::getRemoteAddr());
@@ -136,7 +144,11 @@ class AdminFirebaseLoginController extends AdminLoginController
         }
 
         $cookie->write();
+        return true;
+    }
 
+    protected function doRedirectOrResponse()
+    {
         // If there is a valid controller name submitted, redirect to it
         if (isset($_POST['redirect']) && Validate::isControllerName($_POST['redirect'])) {
             $url = $this->context->link->getAdminLink($_POST['redirect']);
@@ -144,7 +156,6 @@ class AdminFirebaseLoginController extends AdminLoginController
             $tab = new Tab((int)$this->context->employee->default_tab);
             $url = $this->context->link->getAdminLink($tab->class_name);
         }
-        $this->returnOnError();
 
         if (Tools::isSubmit('ajax')) {
             die(json_encode(array('hasErrors' => false, 'redirect' => $url)));

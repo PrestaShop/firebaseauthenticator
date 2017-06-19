@@ -62,6 +62,14 @@ class FirebaseClient
         );
     }
 
+    /**
+     * Auth user with email & password
+     *
+     * @link https://firebase.google.com/docs/reference/rest/auth/#section-sign-in-email-password Firebase documentation
+     * @param string $email
+     * @param string $password
+     * @return object
+     */
     public function signInWithEmailAndPassword($email, $password)
     {
         $response = $this->client->post('/verifyPassword', array(
@@ -75,6 +83,26 @@ class FirebaseClient
 
         $this->checkErrors($response, $body);
         return $body;
+    }
+
+    /**
+     * Get user details related to API token in order to authentify him
+     *
+     * @link https://firebase.google.com/docs/reference/rest/auth/#section-get-account-info Firebase documentation
+     * @param string $token
+     * @return array
+     */
+    public function signInWithToken($token)
+    {
+        $response = $this->client->post('/getAccountInfo', array(
+            'query' => array(
+                'idToken' => $token,
+            ),
+        ));
+        $body = json_decode((string)$response->getBody());
+
+        $this->checkErrors($response, $body);
+        return $body->users;
     }
 
     /**
