@@ -50,12 +50,15 @@ class FirebaseClient
 
         $this->client = new Client(
             array(
-                'base_url' => 'https://www.googleapis.com/identitytoolkit/v3/relyingparty',
+                'base_url' => 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/',
                 'defaults' => array(
                     'timeout'         => 10,
                     'allow_redirects' => false,
                     'query' => array(
                         'key' => $this->apiKey,
+                    ),
+                    'headers' => array(
+                        'Content-Type' => 'application/json'
                     ),
                 )
             )
@@ -72,8 +75,8 @@ class FirebaseClient
      */
     public function signInWithEmailAndPassword($email, $password)
     {
-        $response = $this->client->post('/verifyPassword', array(
-            'query' => array(
+        $response = $this->client->post('verifyPassword', array(
+            'json' => array(
                 'email' => $email,
                 'password' => $password,
                 'returnSecureToken' => true,
@@ -94,8 +97,8 @@ class FirebaseClient
      */
     public function signInWithToken($token)
     {
-        $response = $this->client->post('/getAccountInfo', array(
-            'query' => array(
+        $response = $this->client->post('getAccountInfo', array(
+            'json' => array(
                 'idToken' => $token,
             ),
         ));

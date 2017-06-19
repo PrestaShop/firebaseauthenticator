@@ -107,7 +107,7 @@ class AdminLoginController extends LegacyAdminLoginController
             return parent::postProcess();
         }
 
-        if (!$this->authenticateEmployee()) {
+        if (!$this->authenticateEmployee($email)) {
             return parent::postProcess();
         }
 
