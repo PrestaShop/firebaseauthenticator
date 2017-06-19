@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * 2007-2017 PrestaShop
  * 
  * NOTICE OF LICENSE
@@ -24,7 +24,7 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-require_once(__DIR__.'/../../classes/FirebaseClient.php');
+require_once(dirname(__FILE__).'/../../classes/FirebaseClient.php');
 
 use AdminLoginControllerCore as LegacyAdminLoginController;
 
@@ -34,7 +34,7 @@ class AdminLoginController extends LegacyAdminLoginController
 {
     /**
      * Guzzle instance for Firebase API
-     * 
+     *
      * @var FirebaseClient
      */
     protected $firebaseClient;
@@ -154,8 +154,8 @@ class AdminLoginController extends LegacyAdminLoginController
     protected function doRedirectOrResponse()
     {
         // If there is a valid controller name submitted, redirect to it
-        if (isset($_POST['redirect']) && Validate::isControllerName($_POST['redirect'])) {
-            $url = $this->context->link->getAdminLink($_POST['redirect']);
+        if (Tools::getIsset('redirect') && Validate::isControllerName(Tools::getValue('redirect'))) {
+            $url = $this->context->link->getAdminLink(Tools::getValue('redirect'));
         } else {
             $tab = new Tab((int)$this->context->employee->default_tab);
             $url = $this->context->link->getAdminLink($tab->class_name);
