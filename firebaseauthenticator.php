@@ -23,9 +23,6 @@ class FirebaseAuthenticator extends Module
     public function install()
     {
         parent::install();
-
-        $this->registerHook('displayAdminLogin');
-        $this->registerHook('actionAdminLoginOptionsModifier');
         $this->registerHook('actionAdminLoginControllerSetMedia');
         return true;
     }
@@ -33,33 +30,5 @@ class FirebaseAuthenticator extends Module
     public function hookActionAdminLoginControllerSetMedia()
     {
         $this->context->controller->addJs($this->_path.'views/js/login.js');
-    }
-
-    public function hookDisplayAdminLogin($params)
-    {
-        return $this->displayHook(__FUNCTION__, $params);
-    }
-
-    public function hookActionAdminLoginOptionsModifier($params)
-    {
-        dump(__FUNCTION__, $params);
-    }
-
-    public function displayHook($name, $params)
-    {
-        dump($name, $params);
-        return '<div class="form-group">
-                            <h2>
-                              Authenticate with my awesome module:
-                              <span class="help-box" data-toggle="popover" data-content="That\'s an original input :o" data-original-title="" title=""></span>
-                            </h2>
-
-                            <div class="row">
-                              <div class="col-xl-12 col-lg-12">
-                                  <button class="btn btn-primary btn-lg btn-block ladda-button">LOG ME IN!</button>
-                                  <input id="" name="form[module][adminproductpage][]" class="form-control" type="text" value="'.$name.'">
-                              </div>
-                            </div>
-                          </div>';
     }
 }
