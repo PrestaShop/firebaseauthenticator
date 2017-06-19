@@ -26,8 +26,11 @@
 
 require_once(__DIR__.'/../../classes/FirebaseClient.php');
 
+use AdminLoginControllerCore as LegacyAdminLoginController;
 
-class AdminFirebaseLoginController extends AdminLoginController
+// This class extends AdminLoginController, which extends ModuleAdminController
+
+class AdminLoginController extends LegacyAdminLoginController
 {
     /**
      * Guzzle instance for Firebase API
@@ -39,6 +42,7 @@ class AdminFirebaseLoginController extends AdminLoginController
     public function __construct()
     {
         $this->firebaseClient = new FirebaseClient();
+        parent::__construct();
     }
 
     // Declared from parent class

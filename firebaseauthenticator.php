@@ -26,7 +26,13 @@ class FirebaseAuthenticator extends Module
 
         $this->registerHook('displayAdminLogin');
         $this->registerHook('actionAdminLoginOptionsModifier');
+        $this->registerHook('actionAdminLoginControllerSetMedia');
         return true;
+    }
+
+    public function hookActionAdminLoginControllerSetMedia()
+    {
+        $this->context->controller->addJs($this->_path.'views/js/login.js');
     }
 
     public function hookDisplayAdminLogin($params)
