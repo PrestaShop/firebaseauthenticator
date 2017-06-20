@@ -2,7 +2,17 @@
 
 ## About
 
-Handle login on the PrestaShop back-office with Firebase
+Handle login on the PrestaShop back-office with Firebase.
+
+There are two ways to handle the authentication:
+### Login via email / Password
+
+This module overrides the ajax URL request on the login page, and tries a login on Firebase with the credentials. If they match the employee with the same email, he is grantes access to the shop.
+
+### Login via API key
+
+You can also make the merchant redirected to his shop by using a specific link. The only information you need is his custom token. You can send it via GET or POST param as `api_token`, by calling this URL in all cases:
+> http://<shop URL>/<admin folder>/index.php?controller=AdminLogin&module=firebaseauthenticator
 
 ## Contributing
 

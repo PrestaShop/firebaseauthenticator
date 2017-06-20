@@ -45,11 +45,6 @@ class AdminLoginController extends LegacyAdminLoginController
         parent::__construct();
     }
 
-    // Declared from parent class
-    /*public function checkToken() { return true; }
-
-    public function viewAccess() { return true; }*/
-
     public function postProcess()
     {
         if (Tools::getIsset('api_token')) {
@@ -72,8 +67,8 @@ class AdminLoginController extends LegacyAdminLoginController
         }
 
         // No user or issue with the API? Redirect to the login page
-        if (!isset($user) || !$this->authenticateEmployee($user->email)) {
-            Tools::redirectAdmin(Link::getAdminLink('AdminLogin', false));
+        if (!isset($user) || $user->disabled || !$this->authenticateEmployee($user->email)) {
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminLogin', false));
         }
         $this->doRedirectOrResponse();
     }
