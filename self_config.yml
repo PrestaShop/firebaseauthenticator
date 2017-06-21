@@ -1,0 +1,3 @@
+configuration:
+    update:
+        FIREBASE_API_KEY: <% Add you own Firebase API key %>
