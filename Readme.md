@@ -26,7 +26,7 @@ This module overrides the ajax URL request on the login page, and tries a login 
 
 #### Login via API key
 
-You can also make the merchant redirected to his shop by using a specific link. The only information you need is his custom token. You can send it via GET or POST param as `api_token`, by calling this URL in all cases:
+You can also make the merchant redirected to his shop by using a specific link. The only information you need is his [custom token][4]. You can send it via GET or POST param as `api_token`, by calling this URL in all cases:
 ```
 http://<shop URL>/<admin folder>/index.php?controller=AdminLogin&module=firebaseauthenticator
 ```
@@ -61,3 +61,4 @@ That's it: you have contributed to this open-source project! Congratulations!
 [1]: http://doc.prestashop.com/display/PS16/Coding+Standards
 [2]: http://doc.prestashop.com/display/PS16/How+to+write+a+commit+message
 [3]: https://help.github.com/articles/using-pull-requests
+[4]: https://firebase.google.com/docs/auth/admin/create-custom-tokens
