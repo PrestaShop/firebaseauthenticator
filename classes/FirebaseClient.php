@@ -25,6 +25,7 @@
  */
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class FirebaseClient
 {
@@ -75,17 +76,13 @@ class FirebaseClient
      */
     public function signInWithEmailAndPassword($email, $password)
     {
-        $response = $this->client->post('verifyPassword', array(
+        return $this->post('verifyPassword', array(
             'json' => array(
                 'email' => $email,
                 'password' => $password,
                 'returnSecureToken' => true,
             ),
         ));
-        $body = json_decode((string)$response->getBody());
-
-        $this->checkErrors($response, $body);
-        return $body;
     }
 
     /**
@@ -97,15 +94,27 @@ class FirebaseClient
      */
     public function signInWithToken($token)
     {
-        $response = $this->client->post('getAccountInfo', array(
+        $response = $this->post('getAccountInfo', array(
             'json' => array(
                 'idToken' => $token,
             ),
         ));
+        return $response->users;
+    }
+
+    protected function post($url = null, array $options = [])
+    {
+        try {
+            $response = $this->client->post($url, $options);
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+            } else throw $e;
+        }
         $body = json_decode((string)$response->getBody());
 
         $this->checkErrors($response, $body);
-        return $body->users;
+        return $body;
     }
 
     /**
@@ -119,7 +128,7 @@ class FirebaseClient
     protected function checkErrors($response, $body)
     {
         if ($body->error) {
-            throw new Exception('API answered with errror '. $response->error->message, $response->error->code);
+            throw new Exception('API answered with error '. $body->error->code . ' ('. $body->error->message .')', $body->error->code);
         }
         if ($response->getStatusCode() !== 200) {
             throw new Exception('Unexpected HTTP status '.$response->getStatusCode().' returned', $response->getStatusCode());
