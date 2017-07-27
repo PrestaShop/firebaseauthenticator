@@ -151,6 +151,9 @@ class AdminLoginController extends LegacyAdminLoginController
         // If there is a valid controller name submitted, redirect to it
         if (Tools::getIsset('redirect') && Validate::isControllerName(Tools::getValue('redirect'))) {
             $url = $this->context->link->getAdminLink(Tools::getValue('redirect'));
+            if (Tools::getIsset('redirectOptions')) {
+                $url .= '&'.urldecode(Tools::getValue('redirectOptions'));
+            }
         } else {
             $tab = new Tab((int)$this->context->employee->default_tab);
             $url = $this->context->link->getAdminLink($tab->class_name);
