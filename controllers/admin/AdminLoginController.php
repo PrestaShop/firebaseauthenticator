@@ -46,6 +46,11 @@ class AdminLoginController extends LegacyAdminLoginController
         parent::__construct();
     }
 
+    /**
+     * Entrypoint for the authentication process of PrestaShop
+     * 
+     * @return type
+     */
     public function postProcess()
     {
         if (Tools::getIsset('api_token')) {
@@ -57,6 +62,10 @@ class AdminLoginController extends LegacyAdminLoginController
         }
     }
 
+    /**
+     * Authentication via API key.
+     * No value returned, as we die() at the end of the function.
+     */
     protected function postProcessTokenAuth()
     {
         $token = trim(Tools::getValue('api_token'));
@@ -74,6 +83,12 @@ class AdminLoginController extends LegacyAdminLoginController
         $this->doRedirectOrResponse();
     }
 
+    /**
+     * Authentication via email/password
+     * No parameters, we take directly the parameters from the query.
+     *
+     * @return boolean True is authenticated
+     */
     protected function postProcessBasicAuth()
     {
         /* Check fields validity */
@@ -110,6 +125,12 @@ class AdminLoginController extends LegacyAdminLoginController
         $this->doRedirectOrResponse();
     }
 
+    /**
+     * Load employee from given email and authenticate the user with that account
+     *
+     * @param type $email
+     * @return boolean True if the employee was successfuly found & authenticated
+     */
     protected function authenticateEmployee($email)
     {
         // Find employee
@@ -165,6 +186,13 @@ class AdminLoginController extends LegacyAdminLoginController
         }
     }
 
+    /**
+     * If redirection options are given, this function will check a Legacy controller with the same name exists.
+     * If nothing exists, the URL returned will be the same as the parameter
+     *
+     * @param string $url Default URL
+     * @return string URL to redirect to
+     */
     protected function generateUrlFromLegacyRouter($url)
     {
         // If the redirect is related to a legacy controller ...
@@ -177,6 +205,13 @@ class AdminLoginController extends LegacyAdminLoginController
         return $url;
     }
 
+    /**
+     * If redirection options are given, this function will check a Symfony route with the same name exists.
+     * If nothing exists, the URL returned will be the same as the parameter
+     *
+     * @param string $url Default URL
+     * @return string URL to redirect to
+     */
     protected function generateUrlFromSymfonyRouter($url)
     {
         $container = SymfonyContainer::getInstance();
