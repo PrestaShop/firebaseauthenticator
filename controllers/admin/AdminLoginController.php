@@ -27,6 +27,7 @@
 require_once(dirname(__FILE__).'/../../classes/FirebaseClient.php');
 
 use AdminLoginControllerCore as LegacyAdminLoginController;
+use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 
 // This class extends AdminLoginController, which extends ModuleAdminController
 
@@ -45,6 +46,11 @@ class AdminLoginController extends LegacyAdminLoginController
         parent::__construct();
     }
 
+    /**
+     * Entrypoint for the authentication process of PrestaShop
+     * 
+     * @return type
+     */
     public function postProcess()
     {
         if (Tools::getIsset('api_token')) {
@@ -56,6 +62,10 @@ class AdminLoginController extends LegacyAdminLoginController
         }
     }
 
+    /**
+     * Authentication via API key.
+     * No value returned, as we die() at the end of the function.
+     */
     protected function postProcessTokenAuth()
     {
         $token = trim(Tools::getValue('api_token'));
@@ -73,6 +83,12 @@ class AdminLoginController extends LegacyAdminLoginController
         $this->doRedirectOrResponse();
     }
 
+    /**
+     * Authentication via email/password
+     * No parameters, we take directly the parameters from the query.
+     *
+     * @return boolean True is authenticated
+     */
     protected function postProcessBasicAuth()
     {
         /* Check fields validity */
@@ -109,6 +125,12 @@ class AdminLoginController extends LegacyAdminLoginController
         $this->doRedirectOrResponse();
     }
 
+    /**
+     * Load employee from given email and authenticate the user with that account
+     *
+     * @param type $email
+     * @return boolean True if the employee was successfuly found & authenticated
+     */
     protected function authenticateEmployee($email)
     {
         // Find employee
@@ -148,15 +170,13 @@ class AdminLoginController extends LegacyAdminLoginController
 
     protected function doRedirectOrResponse()
     {
-        // If there is a valid controller name submitted, redirect to it
-        if (Tools::getIsset('redirect') && Validate::isControllerName(Tools::getValue('redirect'))) {
-            $url = $this->context->link->getAdminLink(Tools::getValue('redirect'));
-            if (Tools::getIsset('redirectOptions')) {
-                $url .= '&'.urldecode(Tools::getValue('redirectOptions'));
-            }
-        } else {
-            $tab = new Tab((int)$this->context->employee->default_tab);
-            $url = $this->context->link->getAdminLink($tab->class_name);
+        $tab = new Tab((int)$this->context->employee->default_tab);
+        $url = $this->context->link->getAdminLink($tab->class_name);
+
+        // If there is a valid controller name submitted, try to redirect to it
+        if (Tools::getIsset('redirect')) {
+            $url = $this->generateUrlFromLegacyRouter($url);
+            $url = $this->generateUrlFromSymfonyRouter($url);
         }
 
         if (Tools::isSubmit('ajax')) {
@@ -164,6 +184,56 @@ class AdminLoginController extends LegacyAdminLoginController
         } else {
             $this->redirect_after = $url;
         }
+    }
+
+    /**
+     * If redirection options are given, this function will check a Legacy controller with the same name exists.
+     * If nothing exists, the URL returned will be the same as the parameter
+     *
+     * @param string $url Default URL
+     * @return string URL to redirect to
+     */
+    protected function generateUrlFromLegacyRouter($url)
+    {
+        // If the redirect is related to a legacy controller ...
+        if (Validate::isControllerName(Tools::getValue('redirect'))) {
+            $url = $this->context->link->getAdminLink(Tools::getValue('redirect'));
+            if (Tools::getIsset('redirectOptions')) {
+                $url .= '&'.urldecode(Tools::getValue('redirectOptions'));
+            }
+        }
+        return $url;
+    }
+
+    /**
+     * If redirection options are given, this function will check a Symfony route with the same name exists.
+     * If nothing exists, the URL returned will be the same as the parameter
+     *
+     * @param string $url Default URL
+     * @return string URL to redirect to
+     */
+    protected function generateUrlFromSymfonyRouter($url)
+    {
+        $container = SymfonyContainer::getInstance();
+        if ($container === null) {
+            return $url;
+        }
+
+        $params = array();
+        if (Tools::getIsset('redirectOptions')) {
+            parse_str(urldecode(Tools::getValue('redirectOptions')), $params); // Note this function returns nothing but store in the second param
+        }
+
+        /**
+         * @var \Symfony\Component\Routing\Router
+         */
+        try {
+            $router = $container->get('router');
+            $url = $router->generate(Tools::getValue('redirect'), $params);
+        } catch (\Exception $e) {
+            // Do nothing
+        }
+        return $url;
     }
 
     /**

@@ -31,6 +31,19 @@ You can also make the merchant redirected to his shop by using a specific link. 
 http://<shop URL>/<admin folder>/index.php?controller=AdminLogin&module=firebaseauthenticator
 ```
 
+
+##### Legacy page -> Orders
+```
+http://<shop domain>/<Admin folder>/index.php?controller=AdminLogin&module=firebaseauthenticator&redirect=AdminOrders
+```
+
+##### Symfony page -> Existing product -> ID 1
+```
+http://<shop domain>/<Admin folder>/index.php?controller=AdminLogin&module=firebaseauthenticator&redirect=admin_product_form&redirectOptions=id%3D1
+```
+
+For the list of Symfony routes, look at the routing*.yml files in `src/PrestaShopBundle/Resources/config/`
+
 ## Contributing
 
 PrestaShop modules are open-source extensions to the PrestaShop e-commerce solution. Everyone is welcome and even encouraged to contribute with their own improvements.
