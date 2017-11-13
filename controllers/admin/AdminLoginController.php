@@ -27,12 +27,14 @@
 require_once(dirname(__FILE__).'/../../classes/FirebaseClient.php');
 
 use AdminLoginControllerCore as LegacyAdminLoginController;
-use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
+use Symfony\Component\HttpKernel\KernelInterface;
+
 
 // This class extends AdminLoginController, which extends ModuleAdminController
 
 class AdminLoginController extends LegacyAdminLoginController
 {
+    private static $symfonyContainer;
     /**
      * Guzzle instance for Firebase API
      *
@@ -214,7 +216,7 @@ class AdminLoginController extends LegacyAdminLoginController
      */
     protected function generateUrlFromSymfonyRouter($url)
     {
-        $container = SymfonyContainer::getInstance();
+        $container = $this->getSymfonyContainer();
         if ($container === null) {
             return $url;
         }
@@ -247,5 +249,24 @@ class AdminLoginController extends LegacyAdminLoginController
             }
             die(json_encode(array('hasErrors' => true, 'errors' => $this->errors)));
         }
+    }
+
+    /**
+     * Get a singleton instance of SymfonyContainer
+     *
+     * @return \Symfony\Component\DependencyInjection\ContainerInterface;
+     */
+    public static function getSymfonyContainer()
+    {
+        if (!isset(self::$symfonyContainer)) {
+
+            global $kernel;
+
+            if (!is_null($kernel) && $kernel instanceof KernelInterface) {
+                self::$symfonyContainer = $kernel->getContainer();
+            }
+        }
+
+        return self::$symfonyContainer;
     }
 }
