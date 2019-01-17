@@ -79,7 +79,7 @@ class AdminLoginController extends LegacyAdminLoginController
         }
 
         // No user or issue with the API? Redirect to the login page
-        if (!isset($user) || $user->disabled || !$this->authenticateEmployee($user->email)) {
+        if (!isset($user) || !empty($user->disabled) || !$this->authenticateEmployee($user->email)) {
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminLogin', false));
         }
         $this->doRedirectOrResponse();
