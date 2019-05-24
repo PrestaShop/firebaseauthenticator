@@ -31,7 +31,7 @@ class FirebaseAuthenticator extends Module
         $this->name = 'firebaseauthenticator';
         $this->tab = 'administration';
         $this->author = 'PrestaShop';
-        $this->version = '1.3.1';
+        $this->version = '1.4.0';
 
         $this->bootstrap = true;
         parent::__construct();
